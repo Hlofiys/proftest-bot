@@ -1,24 +1,27 @@
-# Use official Node.js LTS image
-FROM node:alpine
+# --- Build Stage ---
+FROM node:alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Install dependencies (including dev for build)
+COPY package*.json ./
+RUN npm install
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+# --- Production Stage ---
+FROM node:alpine
+
+WORKDIR /app
+
+# Install only production dependencies
 COPY package*.json ./
 RUN npm install --production
 
-# Copy the rest of the source code
-COPY . .
-
-# Build TypeScript (if you want to run compiled JS)
-RUN npm install -g typescript && npm run build
-
-# Expose port (optional, for debugging)
-# EXPOSE 3000
-
-# Set environment variables (optional, or use docker run -e)
-# ENV BOT_TOKEN=your_token_here
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
 
 # Start the bot
 CMD ["node", "dist/bot.js"]
