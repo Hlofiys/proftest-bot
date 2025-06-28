@@ -58,13 +58,22 @@ export async function handleInterestMapAnswer(ctx: MyContext, test: Test) {
     }
     const answer = ctx.callbackQuery.data!.split(':')[1];
 
+    // Rollback if already answered (user changed answer)
+    if (session.answers && session.answers[questionIndex] !== null) {
+        const prevAnswer = session.answers[questionIndex];
+        const prevScaleIndex = test.data.getScaleIndex(questionIndex);
+        if (prevAnswer === 'plusplus' || prevAnswer === 'plus') {
+            if (prevScaleIndex !== undefined) session.scores![prevScaleIndex]--;
+        }
+    }
+    // Store answer
+    if (session.answers) session.answers[questionIndex] = answer;
     if (answer === 'plusplus' || answer === 'plus') {
         const scaleIndex = test.data.getScaleIndex(questionIndex);
         if (scaleIndex !== undefined) {
-             session.scores![scaleIndex]++;
+            session.scores![scaleIndex]++;
         }
     }
-
     session.currentQuestionIndex!++;
     await sendInterestMapQuestion(ctx, test);
 }
@@ -74,6 +83,16 @@ export async function handleInterestMapBack(ctx: MyContext, test: Test) {
     await ctx.answerCallbackQuery();
     if (ctx.session.currentQuestionIndex! > 0) {
         ctx.session.currentQuestionIndex!--;
+        // Rollback score for the answer being undone
+        const idx = ctx.session.currentQuestionIndex!;
+        if (ctx.session.answers && ctx.session.answers[idx] !== null) {
+            const prevAnswer = ctx.session.answers[idx];
+            const prevScaleIndex = test.data.getScaleIndex(idx);
+            if (prevAnswer === 'plusplus' || prevAnswer === 'plus') {
+                if (prevScaleIndex !== undefined) ctx.session.scores![prevScaleIndex]--;
+            }
+            ctx.session.answers[idx] = null;
+        }
         await sendInterestMapQuestion(ctx, test, true, undefined, true);
     }
 }

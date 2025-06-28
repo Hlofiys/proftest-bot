@@ -12,11 +12,12 @@ interface SessionData {
     currentQuestionIndex: number | null;
     scores: number[] | null;
     gradeGroup?: string | null;
+    answers?: (string | null)[] | null;
 }
 export type MyContext = Context & SessionFlavor<SessionData>;
 
 function initial(): SessionData {
-    return { currentTestId: null, currentQuestionIndex: null, scores: null, gradeGroup: null };
+    return { currentTestId: null, currentQuestionIndex: null, scores: null, gradeGroup: null, answers: null };
 }
 
 const bot = new Bot<MyContext>(process.env.BOT_TOKEN || "");
@@ -105,6 +106,7 @@ bot.callbackQuery(/start_test:(.+)/, async (ctx) => {
     ctx.session.currentQuestionIndex = 0;
     ctx.session.scores = Array(test.data.scales.length).fill(0);
     ctx.session.gradeGroup = test.grades[0];
+    ctx.session.answers = Array(test.data.questions.length).fill(null);
 
     const gradeGroup = ctx.session.gradeGroup;
 

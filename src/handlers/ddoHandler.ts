@@ -46,6 +46,14 @@ export async function handleDdoAnswer(ctx: MyContext) {
     }
     const answer = ctx.callbackQuery.data.split(':')[1] as 'a' | 'b';
 
+    // Rollback if already answered (user changed answer)
+    if (session.answers && session.answers[questionIndex] !== null) {
+        const prevAnswer = session.answers[questionIndex] as 'a' | 'b';
+        const prevScaleIndex = key[questionIndex][prevAnswer];
+        session.scores![prevScaleIndex]--;
+    }
+    // Store answer
+    if (session.answers) session.answers[questionIndex] = answer;
     const scaleIndex = key[questionIndex][answer];
     session.scores![scaleIndex]++;
     session.currentQuestionIndex!++;
@@ -80,7 +88,14 @@ export async function handleDdoBack(ctx: MyContext) {
     await ctx.answerCallbackQuery();
     if (ctx.session.currentQuestionIndex! > 0) {
         ctx.session.currentQuestionIndex!--;
-        // Always force edit when going back
+        // Rollback score for the answer being undone
+        const idx = ctx.session.currentQuestionIndex!;
+        if (ctx.session.answers && ctx.session.answers[idx] !== null) {
+            const prevAnswer = ctx.session.answers[idx] as 'a' | 'b';
+            const prevScaleIndex = key[idx][prevAnswer];
+            ctx.session.scores![prevScaleIndex]--;
+            ctx.session.answers[idx] = null;
+        }
         await sendDdoQuestion(ctx, true, undefined, true);
     }
 }
