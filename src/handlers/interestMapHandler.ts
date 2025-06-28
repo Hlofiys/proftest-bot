@@ -62,8 +62,9 @@ export async function handleInterestMapAnswer(ctx: MyContext, test: Test) {
     if (session.answers && session.answers[questionIndex] !== null) {
         const prevAnswer = session.answers[questionIndex];
         const prevScaleIndex = test.data.getScaleIndex(questionIndex);
-        if (prevAnswer === 'plusplus' || prevAnswer === 'plus') {
-            if (prevScaleIndex !== undefined) session.scores![prevScaleIndex]--;
+        if (prevScaleIndex !== undefined) {
+            if (prevAnswer === 'plusplus') session.scores![prevScaleIndex] -= 2;
+            else if (prevAnswer === 'plus') session.scores![prevScaleIndex] -= 1;
         }
     }
     // Store answer
@@ -71,7 +72,8 @@ export async function handleInterestMapAnswer(ctx: MyContext, test: Test) {
     if (answer === 'plusplus' || answer === 'plus') {
         const scaleIndex = test.data.getScaleIndex(questionIndex);
         if (scaleIndex !== undefined) {
-            session.scores![scaleIndex]++;
+            if (answer === 'plusplus') session.scores![scaleIndex] += 2;
+            else if (answer === 'plus') session.scores![scaleIndex] += 1;
         }
     }
     session.currentQuestionIndex!++;
@@ -88,8 +90,9 @@ export async function handleInterestMapBack(ctx: MyContext, test: Test) {
         if (ctx.session.answers && ctx.session.answers[idx] !== null) {
             const prevAnswer = ctx.session.answers[idx];
             const prevScaleIndex = test.data.getScaleIndex(idx);
-            if (prevAnswer === 'plusplus' || prevAnswer === 'plus') {
-                if (prevScaleIndex !== undefined) ctx.session.scores![prevScaleIndex]--;
+            if (prevScaleIndex !== undefined) {
+                if (prevAnswer === 'plusplus') ctx.session.scores![prevScaleIndex] -= 2;
+                else if (prevAnswer === 'plus') ctx.session.scores![prevScaleIndex] -= 1;
             }
             ctx.session.answers[idx] = null;
         }
